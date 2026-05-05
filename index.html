@@ -87,7 +87,9 @@ input,select,textarea{font-family:'IBM Plex Sans',sans-serif}
 .cbadge{font-family:'Raleway',sans-serif;font-weight:300;font-size:7px;letter-spacing:2.5px;text-transform:uppercase;padding:2px 7px;border-radius:1px;display:inline-block;margin-bottom:5px}
 .bl{background:rgba(114,50,194,.15);color:var(--purple2);border:1px solid rgba(114,50,194,.25)}
 .bh{background:rgba(212,96,58,.12);color:var(--coral2);border:1px solid rgba(212,96,58,.22)}
-.c-name{font-family:'Raleway',sans-serif;font-weight:400;font-size:13px;color:var(--peach2);line-height:1.35;max-width:190px}
+.c-name{font-family:'Raleway',sans-serif;font-weight:300;font-size:10px;color:var(--muted2);line-height:1.35;max-width:190px;letter-spacing:.3px}
+.c-price{font-family:'Raleway',sans-serif;font-weight:300;font-size:22px;color:var(--peach2);line-height:1;margin-top:4px}
+.c-acreage{font-family:'Raleway',sans-serif;font-weight:200;font-size:14px;letter-spacing:1px;color:var(--coral2);margin-top:3px}
 .c-sub{font-size:10px;color:var(--muted);margin-top:3px;font-family:'Raleway',sans-serif;font-weight:300}
 .sc-blk{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end}
 .sc-n{font-family:'Raleway',sans-serif;font-weight:200;font-size:42px;line-height:1}
@@ -251,14 +253,24 @@ input,select,textarea{font-family:'IBM Plex Sans',sans-serif}
 .fp-fields{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
 .fp-field{font-family:'Raleway',sans-serif;font-weight:300;font-size:9px;letter-spacing:1px;padding:3px 8px;border-radius:1px;border:1px solid var(--border2);color:var(--muted2)}
 .fp-field span{color:var(--peach)}
-.fp-imgs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-.fp-thumb{width:70px;height:52px;object-fit:cover;border-radius:2px;border:1px solid var(--border);cursor:pointer;transition:border-color .15s}
+.fp-imgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;margin-bottom:10px}
+.fp-thumb{width:100%;aspect-ratio:1;object-fit:cover;border-radius:2px;border:1px solid var(--border);cursor:pointer;transition:border-color .15s}
 .fp-thumb:hover{border-color:var(--purple2)}
 .fp-thumb.selected{border-color:var(--coral);box-shadow:0 0 0 1px var(--coral)}
 .fp-imgs-lbl{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
 .btn-apply{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;padding:6px 16px;background:transparent;border:1px solid rgba(106,188,168,.4);color:#6abca8;border-radius:1px;transition:all .15s}
 .btn-apply:hover{background:rgba(106,188,168,.08)}
 .fetch-divider{border:none;border-top:1px solid var(--border);margin:16px 0 14px}
+
+/* ── BOOKMARKLET ── */
+.bm-link{display:block;background:var(--grad);color:#fff;text-align:center;padding:10px 14px;border-radius:2px;font-family:'Raleway',sans-serif;font-weight:300;font-size:9px;letter-spacing:2px;text-transform:uppercase;text-decoration:none;margin:10px 0;cursor:grab}
+.bm-link:active{cursor:grabbing}
+.bm-steps{list-style:none;margin:8px 0}
+.bm-steps li{font-size:10px;color:var(--muted2);padding:4px 0;border-bottom:1px solid var(--border);line-height:1.5}
+.bm-steps li:last-child{border:none}
+.bm-steps li strong{color:var(--peach)}
+.bm-appurl{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:2px;font-size:11px;margin-bottom:8px}
+.bm-appurl:focus{outline:none;border-color:var(--border2)}
 </style>
 </head>
 <body>
@@ -484,15 +496,22 @@ function buildCard(item,type){
   const pills=(item.features||[]).length?`<div class="pills">${item.features.map(f=>`<span class="pill p${f.status[0]}">${esc(f.name)}</span>`).join('')}</div>`:'';
   const dl=item.deadline?`<div class="dl-txt ${dlClass(item.deadline)}">Deadline: ${fmtD(item.deadline)}</div>`:'';
   const rNotes=UI.showRealtor&&(item.realtorNotes||[]).length?`<div class="c-realtor"><div class="r-av">${esc(item.realtorInitials||'R')}</div><div class="r-nl">${item.realtorNotes.slice(0,2).map(n=>`<div class="r-note"><div class="r-ntxt">"${esc(n.text)}"</div><div class="r-ndate">${fmtD(n.date)}</div></div>`).join('')}</div></div>`:'';
+  const priceStr=item.price?fmt$(item.price):'';
+  const acreageStr=type==='land'?(item.acreage?item.acreage+' acres':''): (item.sqft?item.sqft+' sq ft':'');
   const sub=[];
-  if(type==='land'){if(item.price)sub.push(fmt$(item.price));if(item.acreage)sub.push(item.acreage+' ac');if(item.area)sub.push(item.area)}
-  else{if(item.price)sub.push(fmt$(item.price));if(item.sqft)sub.push(item.sqft+' sqft');if(item.delivery)sub.push(item.delivery)}
+  if(type==='land'){if(item.area)sub.push(item.area);if(item.delivery)sub.push(item.delivery)}
+  else{if(item.delivery)sub.push(item.delivery)}
   return`<div class="${cc}">
   <div class="c-topbar ${bc}"></div>
   ${img}
   <div class="c-body">
     <div class="c-head">
-      <div><div class="cbadge ${type==='land'?'bl':'bh'}">${type==='land'?'Land':'Tiny Home'}</div><div class="c-name">${esc(item.address||item.name||'Untitled')}</div><div class="c-sub">${sub.join(' · ')}</div></div>
+      <div>
+        <div class="cbadge ${type==='land'?'bl':'bh'}">${type==='land'?'Land':'Tiny Home'}</div>
+        ${priceStr?`<div class="c-price">${priceStr}</div>`:''}
+        ${acreageStr?`<div class="c-acreage">${acreageStr}</div>`:''}
+        <div class="c-name">${esc(item.address||item.name||'Untitled')}</div>
+      </div>
       <div class="sc-blk ${sc}"><div class="sc-n">${score!==null?score:'—'}</div><div class="sc-r"></div><div class="sc-l">Match</div></div>
     </div>
     ${pills}
@@ -956,6 +975,15 @@ function renderS(){
       <button class="btn-sa" onclick="addCrit()">+ Add Criterion</button>
       <button class="btn-ss" onclick="saveCrit()">Save Criteria</button>
     </div>
+
+    <div class="s-sec">
+      <span class="s-lbl">Listing Importer Bookmarklet</span>
+      <div class="s-note" style="margin-bottom:8px">Works on <strong style="color:var(--peach2)">land.com</strong> and <strong style="color:var(--peach2)">Zillow</strong>. One click pulls address, price, acreage, and photos directly from the listing page.</div>
+      <label class="fl">Your App URL (GitHub Pages)</label>
+      <input class="bm-appurl" id="bm-url" placeholder="https://yourusername.github.io/moving" value="${esc((D.gh.user?'https://'+D.gh.user+'.github.io/'+(D.gh.repo||'moving'):''))}">
+      <button class="btn-ss" onclick="genBookmarklet()">Generate Bookmarklet</button>
+      <div id="bm-result"></div>
+    </div>
     <div class="s-sec">
       <span class="s-lbl">Geographic Areas</span>
       <div id="area-list">${arH}</div>
@@ -1004,6 +1032,163 @@ function toggleRealtor(){
   renderMain();
 }
 
+
+// ── BOOKMARKLET ──────────────────────────────────────────
+function genBookmarklet(){
+  const appUrl=(document.getElementById('bm-url').value||'').trim().replace(/\/$/,'');
+  if(!appUrl){alert('Enter your app URL first');return}
+
+  // The bookmarklet code - extracts from land.com and Zillow
+  const code=`(function(){
+var d=document,data={};
+var isZillow=location.hostname.includes('zillow');
+var isLand=location.hostname.includes('land.com')||location.hostname.includes('landwatch');
+
+// ── ZILLOW ──
+if(isZillow){
+  try{
+    var nd=d.getElementById('__NEXT_DATA__');
+    if(nd){
+      var j=JSON.parse(nd.textContent);
+      var p=j.props&&j.props.pageProps;
+      var gdp=p&&(p.gdpClientCache||p.componentProps);
+      // Walk the object for listing data
+      var str=JSON.stringify(j);
+      var pm=str.match(/"price":(\\d+)/);if(pm)data.price=pm[1];
+      var am=str.match(/"lotAreaValue":(\\d+\\.?\\d*)/);if(am)data.acreage=am[1];
+      var sqm=str.match(/"livingArea":(\\d+)/);if(sqm)data.sqft=sqm[1];
+      var adm=str.match(/"streetAddress":"([^"]+)"/);if(adm)data.address=adm[1];
+      var cim=str.match(/"city":"([^"]+)"/);if(cim)data.city=cim[1];
+      var stm=str.match(/"state":"([^"]+)"/);if(stm)data.state=stm[1];
+      if(data.city&&data.state)data.address=(data.address||'')+', '+data.city+', '+data.state;
+      // images
+      var imgs=[];var imgm=str.matchAll(/"url":"(https:\/\/photos\.zillowstatic[^"]+)"/g);
+      for(var m of imgm){if(!imgs.includes(m[1]))imgs.push(m[1]);if(imgs.length>=8)break;}
+      data.imgs=imgs;
+    }
+  }catch(e){}
+  // Fallback DOM
+  if(!data.address){var h1=d.querySelector('h1');if(h1)data.address=h1.textContent.trim();}
+  if(!data.price){var pel=d.querySelector('[data-testid="price"]')||d.querySelector('.ds-summary-row');if(pel)data.price=pel.textContent.replace(/[^0-9]/g,'');}
+}
+
+// ── LAND.COM ──
+if(isLand){
+  // JSON-LD first
+  d.querySelectorAll('script[type="application/ld+json"]').forEach(function(s){
+    try{
+      var j=JSON.parse(s.textContent);
+      var items=Array.isArray(j)?j:[j];
+      items.forEach(function(item){
+        if(item.name&&!data.address)data.address=item.name;
+        if(item.description&&!data.desc)data.desc=item.description;
+        if(item.offers&&item.offers.price&&!data.price)data.price=String(item.offers.price);
+        if(item.image){var imgs=Array.isArray(item.image)?item.image:[item.image];data.imgs=imgs.map(function(i){return typeof i==="string"?i:i.url||"";}).filter(Boolean).slice(0,8);}
+      });
+    }catch(e){}
+  });
+  // window state objects
+  var globals=['__INITIAL_STATE__','__REDUX_STATE__','__APP_STATE__','__STATE__','_sharedData'];
+  globals.forEach(function(g){
+    if(window[g]){
+      try{
+        var str=JSON.stringify(window[g]);
+        if(!data.price){var pm=str.match(/"(?:listPrice|price|askingPrice)":(\\d+)/i);if(pm)data.price=pm[1];}
+        if(!data.acreage){var am=str.match(/"(?:acres|acreage|lotSize)":(\\d+\\.?\\d*)/i);if(am)data.acreage=am[1];}
+        if(!data.address){var adm=str.match(/"(?:address|streetAddress|propertyAddress)":"([^"]{5,80})"/i);if(adm)data.address=adm[1];}
+        if(!data.imgs||!data.imgs.length){var imgm=str.matchAll(/"(?:url|src|imageUrl)":"(https:\/\/[^"]*(?:land\.com|cloudinary|imgix|amazonaws)[^"]*\.(?:jpg|jpeg|png|webp))"/gi);var imgs=[];for(var m of imgm){if(!imgs.includes(m[1]))imgs.push(m[1]);if(imgs.length>=8)break;}if(imgs.length)data.imgs=imgs;}
+      }catch(e){}
+    }
+  });
+  // DOM fallbacks
+  if(!data.address){var h1=d.querySelector('h1,[class*="listing-title"],[class*="property-name"]');if(h1)data.address=h1.textContent.trim();}
+  if(!data.price){var pel=d.querySelector('[class*="price"],[data-price]');if(pel){var pt=pel.textContent.match(/\\$([\\d,]+)/);if(pt)data.price=pt[1].replace(/,/g,'');}}
+  if(!data.acreage){var txt=d.body.innerText;var am=txt.match(/(\\d{1,4}(?:\\.\\d{1,2})?)\\s*(?:total\\s*)?acres?/i);if(am)data.acreage=am[1];}
+  if(!data.imgs||!data.imgs.length){var imgs=[];d.querySelectorAll('img[src]').forEach(function(img){var src=img.src||'';if(src.startsWith('https')&&(src.includes('land.com')||src.includes('cloudinary')||src.includes('cdn'))&&!imgs.includes(src))imgs.push(src);});data.imgs=imgs.slice(0,8);}
+}
+
+// og:image fallback for any site
+if(!data.imgs||!data.imgs.length){
+  var ogI=d.querySelector('meta[property="og:image"]');
+  if(ogI&&ogI.content)data.imgs=[ogI.content];
+}
+if(!data.address){var og=d.querySelector('meta[property="og:title"]');if(og)data.address=og.content;}
+
+data.url=location.href;
+data.address=(data.address||'').replace(/\\s*[-|·]\\s*(land\\.com|zillow|landwatch).*/i,'').trim();
+
+var encoded=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+var target='${appUrl}?ls='+encoded;
+window.open(target,'_blank');
+})();`;
+
+  // Minify slightly and create href
+  const href='javascript:'+encodeURIComponent(code);
+  document.getElementById('bm-result').innerHTML=`
+    <div style="margin-top:14px">
+      <a class="bm-link" href="${href}" title="Drag this to your bookmarks bar">&#8657; Drag this to your bookmarks bar</a>
+      <ol class="bm-steps">
+        <li><strong>Drag</strong> the button above to your browser bookmarks bar</li>
+        <li>Go to any <strong>land.com</strong> or <strong>Zillow</strong> listing page</li>
+        <li>Click <strong>LandScout Import</strong> in your bookmarks bar</li>
+        <li>This app opens in a new tab with the listing pre-filled</li>
+      </ol>
+    </div>`;
+}
+
+// ── HANDLE IMPORT FROM BOOKMARKLET ───────────────────────
+function checkImport(){
+  const params=new URLSearchParams(location.search);
+  const ls=params.get('ls');
+  if(!ls)return;
+  try{
+    const data=JSON.parse(decodeURIComponent(escape(atob(ls))));
+    // Clean URL without param
+    window.history.replaceState({},'',location.pathname);
+    // Wait for data to load then open modal
+    setTimeout(()=>{
+      const type='land';
+      openModal(type,null);
+      setTimeout(()=>{
+        if(data.address){const e=document.getElementById('f-addr');if(e)e.value=data.address;}
+        if(data.price){const e=document.getElementById('f-price');if(e)e.value=String(data.price).replace(/[^0-9.]/g,'');}
+        if(data.acreage){const e=document.getElementById('f-acreage');if(e)e.value=data.acreage;}
+        if(data.sqft){const e=document.getElementById('f-sqft');if(e)e.value=data.sqft;}
+        if(data.url){const e=document.getElementById('f-lurl');if(e)e.value=data.url;}
+        if(data.desc){const e=document.getElementById('f-notes');if(e&&!e.value)e.value=data.desc.slice(0,300);}
+        // Images — populate the fetch preview panel
+        if(data.imgs&&data.imgs.length){
+          window._scraped=window._scraped||{};
+          window._scraped.selectedImg=data.imgs[0];
+          window._scraped.imgs=data.imgs;
+          window._scraped.url=data.url||'';
+          const imgEl=document.getElementById('f-img');if(imgEl)imgEl.value=data.imgs[0];
+          // Show image picker in fetch preview
+          const preview=document.getElementById('fetch-preview');
+          const status=document.getElementById('fetch-status');
+          if(preview&&status){
+            const thumbs=data.imgs.map((src,i)=>`<img class="fp-thumb${i===0?' selected':''}" src="${src}" onclick="selectThumb(this,'${src}')" onerror="this.style.display='none'" loading="lazy">`).join('');
+            preview.innerHTML=`
+              <img class="fp-img" id="fp-main-img" src="${data.imgs[0]}" onerror="this.style.display='none'">
+              <div class="fp-body">
+                <div class="fp-imgs-lbl">Click image to set as cover photo</div>
+                <div class="fp-imgs">${thumbs}</div>
+              </div>`;
+            preview.className='fetch-preview show';
+            status.className='fetch-status ok';
+            status.textContent='Imported from listing — review and save';
+          }
+        }
+        // Flash
+        ['f-addr','f-price','f-acreage','f-sqft','f-lurl'].forEach(id=>{
+          const el=document.getElementById(id);
+          if(el&&el.value){el.style.borderColor='rgba(106,188,168,.6)';setTimeout(()=>el.style.borderColor='',2000);}
+        });
+      },100);
+    },500);
+  }catch(e){console.warn('LandScout import error:',e);}
+}
+
 // ── INIT ─────────────────────────────────────────────────
 (function init(){
   const g=localStorage.getItem('ls_gh');
@@ -1012,6 +1197,7 @@ function toggleRealtor(){
   document.getElementById('toolbar').style.display='flex';
   renderAll();
   if(D.gh.user&&D.gh.token)ghLoad();
+  checkImport();
 })();
 </script>
 </body>
