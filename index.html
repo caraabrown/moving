@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Land Scout</title>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@200;300;400;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0c2a;--bg2:#11112e;--bg3:#16163a;
+  --border:#1e1e48;--border2:#26265a;
+  --coral:#d4603a;--coral2:#e8846a;
+  --purple:#7232c2;--purple2:#9a5cd4;
+  --peach:#d8b8a8;--peach2:#e8cfc0;
+  --muted:#6060a0;--muted2:#8888b8;
+  --text:#c8c0dc;
+  --grad:linear-gradient(120deg,#7232c2,#d4603a);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh}
+button{cursor:pointer}
+input,select,textarea{font-family:'IBM Plex Sans',sans-serif}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2)}
+
+#header{background:var(--bg);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:22px;position:sticky;top:0;z-index:100;flex-wrap:wrap}
+.logo{font-family:'Raleway',sans-serif;font-weight:200;font-size:18px;letter-spacing:6px;text-transform:uppercase;color:var(--peach2);flex-shrink:0}
+.logo-g{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:400}
+.vdiv{width:1px;height:36px;background:var(--border);flex-shrink:0}
+.cd-block{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.cd-num{font-family:'Raleway',sans-serif;font-weight:200;font-size:30px;line-height:1;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.cd-rule{width:100%;height:1px;background:var(--grad);margin:3px 0}
+.cd-lbl{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--muted)}
+.hstats{display:flex;gap:26px}
+.hs{display:flex;flex-direction:column}
+.hs-n{font-family:'Raleway',sans-serif;font-weight:200;font-size:22px;color:var(--peach2);line-height:1}
+.hs-r{width:100%;height:1px;background:var(--border2);margin:3px 0}
+.hs-l{font-family:'Raleway',sans-serif;font-weight:300;font-size:7px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted)}
+.hdr-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.gh-pill{display:flex;align-items:center;gap:5px;font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2px;text-transform:uppercase}
+.gh-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.gh-off{color:var(--muted)}.gh-off .gh-dot{background:var(--muted)}
+.gh-ok{color:#6abca8}.gh-ok .gh-dot{background:#6abca8}
+.gh-err{color:var(--coral)}.gh-err .gh-dot{background:var(--coral)}
+.gh-saving{color:#c8a040}.gh-saving .gh-dot{background:#c8a040;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.ibtn{background:transparent;border:1px solid var(--border2);color:var(--muted);border-radius:2px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s}
+.ibtn:hover{border-color:var(--muted);color:var(--muted2)}
+.rtoggle{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;padding:5px 12px;border:1px solid var(--border2);border-radius:2px;background:transparent;color:var(--muted);transition:all .15s}
+.rtoggle.on{border-color:rgba(114,50,194,.5);color:var(--purple2)}
+
+#tabs{background:var(--bg);border-bottom:1px solid var(--border);padding:0 28px;display:flex;overflow-x:auto}
+.tab{font-family:'Raleway',sans-serif;font-weight:300;font-size:9px;letter-spacing:3px;text-transform:uppercase;padding:13px 18px;color:var(--muted);border-bottom:1px solid transparent;transition:all .15s;background:none;border-left:none;border-right:none;border-top:none;white-space:nowrap}
+.tab.active{color:var(--peach);border-bottom-color:var(--coral)}
+
+#toolbar{padding:12px 28px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.fc{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:4px 12px;border-radius:1px;border:1px solid var(--border);color:var(--muted);background:transparent;transition:all .15s}
+.fc:hover{border-color:var(--border2);color:var(--muted2)}
+.fc.on{background:var(--grad);color:#fff;border-color:transparent}
+.fsel{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2px;background:var(--bg2);border:1px solid var(--border);color:var(--muted2);padding:4px 10px;border-radius:1px}
+.fsel option{background:var(--bg2)}
+.tbr{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn-add{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:3px;text-transform:uppercase;padding:6px 18px;background:var(--grad);color:#fff;border:none;border-radius:1px;transition:opacity .15s}
+.btn-add:hover{opacity:.85}
+.cmp-txt{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--purple2)}
+.cmp-lnk{color:var(--coral2);text-decoration:underline;cursor:pointer}
+
+#main{padding:24px 28px;min-height:60vh}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.cgrid{grid-template-columns:1fr}}
+
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s}
+.card:hover{border-color:var(--border2)}
+.card.m-high{border-color:rgba(212,96,58,.42)}
+.card.m-med{border-color:rgba(114,50,194,.35)}
+.card.s-passed{opacity:.38}
+.c-topbar{height:2px;flex-shrink:0}
+.c-topbar.t-high{background:linear-gradient(90deg,#d4603a,#7232c2)}
+.c-topbar.t-med{background:linear-gradient(90deg,#7232c2,#9a5cd4)}
+.c-topbar.t-low{background:var(--border2)}
+.c-img{width:100%;height:130px;object-fit:cover;display:block;background:var(--bg3);flex-shrink:0}
+.c-img-ph{width:100%;height:70px;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.c-img-ph-t{font-family:'Raleway',sans-serif;font-weight:200;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--border2)}
+.c-body{padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:9px}
+.c-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.cbadge{font-family:'Raleway',sans-serif;font-weight:300;font-size:7px;letter-spacing:2.5px;text-transform:uppercase;padding:2px 7px;border-radius:1px;display:inline-block;margin-bottom:5px}
+.bl{background:rgba(114,50,194,.15);color:var(--purple2);border:1px solid rgba(114,50,194,.25)}
+.bh{background:rgba(212,96,58,.12);color:var(--coral2);border:1px solid rgba(212,96,58,.22)}
+.c-name{font-family:'Raleway',sans-serif;font-weight:400;font-size:13px;color:var(--peach2);line-height:1.35;max-width:190px}
+.c-sub{font-size:10px;color:var(--muted);margin-top:3px;font-family:'Raleway',sans-serif;font-weight:300}
+.sc-blk{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end}
+.sc-n{font-family:'Raleway',sans-serif;font-weight:200;font-size:42px;line-height:1}
+.sc-r{width:100%;height:1px;margin:2px 0}
+.sc-l{font-family:'Raleway',sans-serif;font-weight:300;font-size:7px;letter-spacing:2px;text-transform:uppercase;text-align:right}
+.schi .sc-n{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.schi .sc-r{background:var(--grad)}.schi .sc-l{color:var(--coral)}
+.scme .sc-n{color:var(--purple2)}.scme .sc-r{background:var(--purple)}.scme .sc-l{color:var(--purple2)}
+.sclo .sc-n{color:var(--border2)}.sclo .sc-r{background:var(--border)}.sclo .sc-l{color:var(--border2)}
+.scno .sc-n{color:var(--border)}.scno .sc-r{background:var(--border)}.scno .sc-l{color:var(--border)}
+
+.pills{display:flex;flex-wrap:wrap;gap:5px}
+.pill{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 9px;border-radius:1px;border:1px solid}
+.pg{background:rgba(106,188,168,.08);color:#6abca8;border-color:rgba(106,188,168,.25)}
+.pr{background:rgba(212,96,58,.08);color:#c87060;border-color:rgba(212,96,58,.22)}
+.pgy{background:rgba(255,255,255,.02);color:var(--muted);border-color:var(--border)}
+
+.c-status{display:flex;align-items:center;gap:6px}
+.sdot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.stxt{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2px;text-transform:uppercase}
+.ss-researching .sdot{background:var(--muted)}.ss-researching .stxt{color:var(--muted)}
+.ss-touring .sdot{background:#6abca8}.ss-touring .stxt{color:#6abca8}
+.ss-priority .sdot{background:var(--coral)}.ss-priority .stxt{color:var(--coral)}
+.ss-offer .sdot{background:var(--purple2)}.ss-offer .stxt{color:var(--purple2)}
+.ss-passed .sdot{background:var(--border)}.ss-passed .stxt{color:var(--border2)}
+.ss-pending .sdot{background:var(--muted2)}.ss-pending .stxt{color:var(--muted2)}
+.dl-txt{font-family:'Raleway',sans-serif;font-weight:300;font-size:9px;color:var(--muted)}
+.dl-urgent{color:var(--coral)}.dl-soon{color:#c8a040}
+
+.c-realtor{background:var(--bg3);border-top:1px solid var(--border);padding:9px 16px;display:flex;align-items:flex-start;gap:9px}
+.r-av{width:22px;height:22px;border-radius:50%;background:rgba(114,50,194,.2);display:flex;align-items:center;justify-content:center;font-family:'Raleway',sans-serif;font-weight:400;font-size:8px;color:var(--purple2);flex-shrink:0;margin-top:1px;border:1px solid rgba(114,50,194,.3)}
+.r-nl{flex:1}
+.r-note{margin-bottom:3px}
+.r-ntxt{font-size:10px;color:var(--purple2);font-style:italic;line-height:1.45}
+.r-ndate{font-size:8px;color:var(--muted)}
+
+.c-acts{padding:8px 16px;display:flex;gap:5px;border-top:1px solid var(--bg3);flex-wrap:wrap;align-items:center}
+.bsm{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border-radius:1px;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .15s}
+.bsm:hover{border-color:var(--border2);color:var(--muted2)}
+.bsm-d{border-color:rgba(212,96,58,.18);color:rgba(200,96,58,.38)}
+.bsm-d:hover{border-color:var(--coral);color:var(--coral);background:rgba(212,96,58,.06)}
+.cmpcb{accent-color:var(--purple2);cursor:pointer;margin-right:3px}
+
+.empty{text-align:center;padding:80px 20px}
+.empty-t{font-family:'Raleway',sans-serif;font-weight:200;font-size:16px;letter-spacing:5px;text-transform:uppercase;color:var(--border2);margin-bottom:8px}
+.empty-r{width:80px;height:1px;background:var(--border);margin:12px auto}
+.empty-s{font-family:'Raleway',sans-serif;font-weight:300;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--border2)}
+
+.compat-wrap{overflow-x:auto}
+.ctbl{border-collapse:collapse;min-width:400px}
+.ctbl th{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.ctbl td{padding:9px 12px;border-bottom:1px solid var(--bg3);vertical-align:middle}
+.ctbl tr:hover td{background:var(--bg3)}
+.cm-cell{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;min-width:68px}
+.cm-dot{width:12px;height:12px;border-radius:50%;border:1px solid}
+.cm-note{font-size:8px;color:var(--muted);text-align:center;max-width:68px;line-height:1.3}
+.cm-rn{font-size:11px;color:var(--peach);font-family:'Raleway',sans-serif;font-weight:300}
+.cm-rs{font-size:9px;color:var(--muted)}
+
+.cmp-empty{text-align:center;padding:70px;font-family:'Raleway',sans-serif;font-weight:200;font-size:13px;letter-spacing:4px;text-transform:uppercase;color:var(--border2)}
+.cmp-wrap{overflow-x:auto}
+.cmpt{border-collapse:collapse;width:100%}
+.cmpt th{font-family:'Raleway',sans-serif;font-weight:300;font-size:9px;letter-spacing:2.5px;text-transform:uppercase;padding:12px 16px;text-align:left;border-bottom:1px solid var(--border);color:var(--peach);background:var(--bg2)}
+.cmpt th:first-child{color:var(--muted);background:var(--bg3);font-size:8px}
+.cmpt td{padding:9px 16px;border-bottom:1px solid var(--bg3);font-size:11px;color:var(--text);vertical-align:top}
+.cmpt td:first-child{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);white-space:nowrap;background:var(--bg3)}
+.cmp-sc{font-family:'Raleway',sans-serif;font-weight:200;font-size:26px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+#budget-bar{background:var(--bg3);border-top:1px solid var(--border);padding:10px 28px;display:flex;align-items:center;gap:26px;position:sticky;bottom:0;flex-wrap:wrap}
+.bdi{display:flex;flex-direction:column}
+.bdl{font-family:'Raleway',sans-serif;font-weight:300;font-size:7px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted)}
+.bdr{height:1px;background:var(--border);margin:3px 0}
+.bdv{font-family:'Raleway',sans-serif;font-weight:200;font-size:16px;color:var(--muted2)}
+.bdv.set{color:var(--peach2)}
+.bdsep{width:1px;height:28px;background:var(--border)}
+.bdt .bdl{color:rgba(212,96,58,.55)}
+.bdt .bdv{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.bdt .bdv.set{color:unset}
+
+#overlay{position:fixed;inset:0;background:rgba(6,6,20,.92);z-index:200;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:36px 16px}
+#overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:4px;width:100%;max-width:580px;padding:24px;margin:auto}
+.m-topbar{height:2px;background:var(--grad);border-radius:2px 2px 0 0;margin:-24px -24px 20px}
+.m-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.m-title{font-family:'Raleway',sans-serif;font-weight:200;font-size:13px;letter-spacing:4px;text-transform:uppercase;color:var(--peach2)}
+.m-x{background:none;border:none;color:var(--muted);font-size:20px;line-height:1;padding:0 4px}
+.m-x:hover{color:var(--muted2)}
+.fr{margin-bottom:13px}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:13px}
+.fl{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block}
+.fi{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 11px;border-radius:2px;font-size:12px;transition:border-color .15s}
+.fi:focus{outline:none;border-color:var(--border2)}
+.fi option{background:var(--bg2)}
+.fta{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 11px;border-radius:2px;font-size:12px;resize:vertical;min-height:60px}
+.fta:focus{outline:none;border-color:var(--border2)}
+.fsec{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin:18px 0 9px;padding-bottom:6px;border-bottom:1px solid var(--border);display:block}
+.feat-row{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.feat-n{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:2px;font-size:11px}
+.feat-n:focus{outline:none;border-color:var(--border2)}
+.feat-s{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:2px;font-size:11px}
+.feat-del{background:none;border:none;color:var(--muted);font-size:14px;line-height:1;padding:2px 4px}
+.feat-del:hover{color:var(--coral)}
+.btn-af{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:5px 12px;border:1px dashed var(--border);border-radius:1px;background:transparent;color:var(--muted);transition:all .15s}
+.btn-af:hover{border-color:var(--border2);color:var(--muted2)}
+.ni{background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:7px 10px;margin-bottom:6px;position:relative;padding-right:26px}
+.ni-txt{font-size:11px;color:var(--purple2);font-style:italic;line-height:1.45}
+.ni-date{font-size:9px;color:var(--muted);margin-top:2px}
+.ni-del{position:absolute;top:6px;right:7px;background:none;border:none;color:var(--muted);font-size:11px}
+.ni-del:hover{color:var(--coral)}
+.m-acts{display:flex;gap:8px;margin-top:20px;justify-content:flex-end;align-items:center}
+.btn-di{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:7px 14px;background:transparent;border:1px solid rgba(212,96,58,.18);color:rgba(200,96,58,.4);border-radius:1px;margin-right:auto;transition:all .15s}
+.btn-di:hover{border-color:var(--coral);color:var(--coral);background:rgba(212,96,58,.06)}
+.btn-can{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:7px 14px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:1px}
+.btn-can:hover{color:var(--muted2)}
+.btn-sv{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;padding:7px 20px;background:var(--grad);border:none;color:#fff;border-radius:1px;transition:opacity .15s}
+.btn-sv:hover{opacity:.85}
+
+#settings{position:fixed;right:0;top:0;bottom:0;width:360px;background:var(--bg);border-left:1px solid var(--border);z-index:150;transform:translateX(100%);transition:transform .25s;overflow-y:auto;padding:24px}
+#settings.open{transform:translateX(0)}
+.s-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.s-title{font-family:'Raleway',sans-serif;font-weight:200;font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--peach2)}
+.s-sec{margin-bottom:22px}
+.s-lbl{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);display:block}
+.cr{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.cr-n{flex:1;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:2px;font-size:11px}
+.cr-n:focus{outline:none;border-color:var(--border2)}
+.cr-w{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:2px;font-size:11px;width:54px}
+.cr-del{background:none;border:none;color:var(--muted);font-size:13px}
+.cr-del:hover{color:var(--coral)}
+.ar{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.ar-n{flex:1;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:2px;font-size:11px}
+.ar-del{background:none;border:none;color:var(--muted);font-size:13px}
+.ar-del:hover{color:var(--coral)}
+.btn-sa{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:5px 12px;border:1px dashed var(--border);border-radius:1px;background:transparent;color:var(--muted);transition:all .15s;margin-top:4px}
+.btn-sa:hover{border-color:var(--border2);color:var(--muted2)}
+.btn-ss{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:3px;text-transform:uppercase;padding:8px 0;background:var(--grad);border:none;color:#fff;border-radius:1px;width:100%;margin-top:8px;transition:opacity .15s}
+.btn-ss:hover{opacity:.85}
+.s-note{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.6}
+.s-note a{color:var(--purple2)}
+.wt-h{font-size:9px;color:var(--muted);margin-bottom:6px;font-style:italic}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo">Land<span class="logo-g">Scout</span></div>
+  <div class="vdiv"></div>
+  <div class="cd-block">
+    <div class="cd-num" id="cd-num">—</div>
+    <div class="cd-rule"></div>
+    <div class="cd-lbl">Days Remaining</div>
+  </div>
+  <div class="vdiv"></div>
+  <div class="hstats">
+    <div class="hs"><div class="hs-n" id="hs-land">0</div><div class="hs-r"></div><div class="hs-l">Land</div></div>
+    <div class="hs"><div class="hs-n" id="hs-homes">0</div><div class="hs-r"></div><div class="hs-l">Homes</div></div>
+    <div class="hs"><div class="hs-n" id="hs-tour">0</div><div class="hs-r"></div><div class="hs-l">Touring</div></div>
+    <div class="hs"><div class="hs-n" id="hs-high">0</div><div class="hs-r"></div><div class="hs-l">High Match</div></div>
+  </div>
+  <div class="hdr-r">
+    <div class="gh-pill gh-off" id="gh-pill"><div class="gh-dot"></div><span id="gh-txt">Not connected</span></div>
+    <button class="rtoggle" id="rtoggle" onclick="toggleRealtor()">Realtor Notes</button>
+    <button class="ibtn" onclick="openSettings()">&#9881;</button>
+  </div>
+</div>
+
+<div id="tabs">
+  <button class="tab active" onclick="switchTab('land',this)">Land Listings</button>
+  <button class="tab" onclick="switchTab('homes',this)">Tiny Homes</button>
+  <button class="tab" onclick="switchTab('compat',this)">Compatibility</button>
+  <button class="tab" onclick="switchTab('compare',this)">Compare</button>
+</div>
+
+<div id="toolbar">
+  <button class="fc on" onclick="setFilter('all',this)">All</button>
+  <button class="fc" onclick="setFilter('researching',this)">Researching</button>
+  <button class="fc" onclick="setFilter('touring',this)">Touring</button>
+  <button class="fc" onclick="setFilter('priority',this)">Priority</button>
+  <button class="fc" onclick="setFilter('offer',this)">Offer</button>
+  <button class="fc" onclick="setFilter('passed',this)">Passed</button>
+  <select class="fsel" id="af" onchange="renderMain()"><option value="all">All Areas</option></select>
+  <div class="tbr">
+    <span id="cmp-bar" class="cmp-txt"></span>
+    <button class="btn-add" id="btn-add" onclick="openModal(null,null)">+ Add Listing</button>
+  </div>
+</div>
+
+<div id="main"></div>
+
+<div id="budget-bar">
+  <div class="bdi"><div class="bdl">Land Budget</div><div class="bdr"></div><div class="bdv" id="bv-l">—</div></div>
+  <div class="bdsep"></div>
+  <div class="bdi"><div class="bdl">Home Budget</div><div class="bdr"></div><div class="bdv" id="bv-h">—</div></div>
+  <div class="bdsep"></div>
+  <div class="bdi"><div class="bdl">Modifications</div><div class="bdr"></div><div class="bdv" id="bv-m">—</div></div>
+  <div class="bdsep"></div>
+  <div class="bdi bdt"><div class="bdl">Total Est.</div><div class="bdr"></div><div class="bdv" id="bv-t">—</div></div>
+</div>
+
+<div id="overlay"><div class="modal" id="modal-inner"></div></div>
+<div id="settings"><div id="s-body"></div></div>
+
+<script>
+let D={land:[],homes:[],compat:{},criteria:[],areas:[],moveDate:'',budget:{land:'',home:'',mods:''},gh:{user:'',repo:'moving',token:''}};
+let _sha=null;
+let UI={tab:'land',showRealtor:true,filterStatus:'all',compareIds:[]};
+
+// ── GITHUB ────────────────────────────────────────────────
+function ghH(){return{'Authorization':'token '+D.gh.token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'}}
+function ghURL(){return'https://api.github.com/repos/'+D.gh.user+'/'+D.gh.repo+'/contents/data.json'}
+
+async function ghLoad(){
+  if(!D.gh.user||!D.gh.token){setGH('off','Not connected');return}
+  setGH('saving','Loading...');
+  try{
+    const r=await fetch(ghURL(),{headers:ghH()});
+    if(r.status===404){setGH('ok','Connected');renderAll();return}
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    _sha=j.sha;
+    const raw=JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\n/g,'')))));
+    D.land=raw.land||[];D.homes=raw.homes||[];D.compat=raw.compat||{};
+    D.criteria=raw.criteria||[];D.areas=raw.areas||[];
+    D.moveDate=raw.moveDate||'';D.budget=raw.budget||{land:'',home:'',mods:''};
+    setGH('ok','Saved');renderAll();
+  }catch(e){setGH('err',''+e.message)}
+}
+
+let _st=null;
+function save(){clearTimeout(_st);_st=setTimeout(ghSave,1500)}
+
+async function ghSave(){
+  if(!D.gh.user||!D.gh.token)return;
+  setGH('saving','Saving...');
+  try{
+    const pl={land:D.land,homes:D.homes,compat:D.compat,criteria:D.criteria,areas:D.areas,moveDate:D.moveDate,budget:D.budget};
+    const body={message:'Update',content:btoa(unescape(encodeURIComponent(JSON.stringify(pl,null,2))))};
+    if(_sha)body.sha=_sha;
+    const r=await fetch(ghURL(),{method:'PUT',headers:ghH(),body:JSON.stringify(body)});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    _sha=(await r.json()).content.sha;
+    setGH('ok','Saved');
+  }catch(e){setGH('err',''+e.message)}
+}
+
+function setGH(s,t){
+  document.getElementById('gh-pill').className='gh-pill gh-'+s;
+  document.getElementById('gh-txt').textContent=t;
+}
+
+// ── UTILS ─────────────────────────────────────────────────
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function fmt$(n){if(!n&&n!==0)return'—';return'$'+Number(n).toLocaleString()}
+function daysLeft(){if(!D.moveDate)return null;return Math.ceil((new Date(D.moveDate)-new Date())/86400000)}
+function fmtD(s){if(!s)return'';return new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+function dlClass(s){if(!s)return'';const d=Math.ceil((new Date(s)-new Date())/86400000);return d<=5?'dl-urgent':d<=10?'dl-soon':''}
+function slbl(s){return{researching:'Researching',touring:'Touring',priority:'Priority',offer:'Offer Made',passed:'Not Viable',pending:'Pending'}[s]||s||'Researching'}
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function v(id){const e=document.getElementById(id);return e?e.value:''}
+
+function calcScore(item){
+  if(!D.criteria||!D.criteria.length){const ms=parseInt(item.manualScore);return isNaN(ms)?null:ms}
+  let tot=0,earn=0;
+  D.criteria.forEach(c=>{
+    const w=parseFloat(c.weight)||1;tot+=w;
+    const f=(item.features||[]).find(x=>x.name.toLowerCase()===c.name.toLowerCase());
+    if(f){if(f.status==='green')earn+=w;else if(f.status==='grey')earn+=w*0.5;}
+  });
+  return tot===0?null:Math.round((earn/tot)*100);
+}
+
+function scCls(s){if(s===null||s===undefined)return'scno';if(s>=75)return'schi';if(s>=50)return'scme';return'sclo'}
+function barCls(s){if(s===null||s===undefined)return't-low';if(s>=75)return't-high';if(s>=50)return't-med';return't-low'}
+
+// ── RENDER ────────────────────────────────────────────────
+function renderAll(){updateHeader();renderMain();renderBudget();syncAreaFilter()}
+
+function updateHeader(){
+  const dl=daysLeft();
+  document.getElementById('cd-num').textContent=dl!==null?dl:'—';
+  const all=(D.land||[]).concat(D.homes||[]);
+  document.getElementById('hs-land').textContent=(D.land||[]).length;
+  document.getElementById('hs-homes').textContent=(D.homes||[]).length;
+  document.getElementById('hs-tour').textContent=all.filter(x=>x.status==='touring'||x.status==='priority').length;
+  document.getElementById('hs-high').textContent=all.filter(x=>calcScore(x)>=75).length;
+}
+
+function renderBudget(){
+  const b=D.budget||{};
+  const l=parseFloat(b.land)||0,h=parseFloat(b.home)||0,m=parseFloat(b.mods)||0;
+  const set=(id,val,has)=>{const e=document.getElementById(id);e.textContent=has?fmt$(val):'—';e.className='bdv'+(has?' set':'')};
+  set('bv-l',b.land,!!b.land);set('bv-h',b.home,!!b.home);set('bv-m',b.mods,!!b.mods);
+  const t=l+h+m;document.getElementById('bv-t').textContent=t?fmt$(t):'—';document.getElementById('bv-t').className='bdv'+(t?' set':'');
+}
+
+function syncAreaFilter(){
+  const sel=document.getElementById('af');const cur=sel.value;
+  sel.innerHTML='<option value="all">All Areas</option>';
+  (D.areas||[]).forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;if(a===cur)o.selected=true;sel.appendChild(o)});
+}
+
+function switchTab(t,el){
+  UI.tab=t;UI.compareIds=[];
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  if(el)el.classList.add('active');
+  const showBar=['land','homes'].includes(t);
+  document.getElementById('toolbar').style.display=showBar?'flex':'none';
+  document.getElementById('btn-add').textContent=t==='homes'?'+ Add Home':'+ Add Listing';
+  renderMain();
+}
+
+function setFilter(s,el){
+  UI.filterStatus=s;
+  document.querySelectorAll('.fc').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');
+  renderMain();
+}
+
+function renderMain(){
+  const main=document.getElementById('main');
+  if(UI.tab==='compat'){main.innerHTML=buildCompat();bindCM();return}
+  if(UI.tab==='compare'){main.innerHTML=buildCompare();return}
+  const isL=UI.tab==='land';
+  const area=document.getElementById('af').value;
+  let list=((isL?D.land:D.homes)||[]).filter(x=>{
+    if(UI.filterStatus!=='all'&&x.status!==UI.filterStatus)return false;
+    if(area!=='all'&&x.area!==area)return false;
+    return true;
+  });
+  if(!list.length){
+    main.innerHTML=`<div class="empty"><div class="empty-t">No ${isL?'land listings':'tiny homes'} yet</div><div class="empty-r"></div><div class="empty-s">Click + Add ${isL?'Listing':'Home'} to get started</div></div>`;
+    return;
+  }
+  main.innerHTML=`<div class="cgrid">${list.map(item=>buildCard(item,isL?'land':'home')).join('')}</div>`;
+  main.querySelectorAll('.cmpcb').forEach(cb=>{
+    cb.checked=UI.compareIds.includes(cb.dataset.id);
+    cb.addEventListener('change',function(){
+      const id=this.dataset.id;
+      if(this.checked){if(UI.compareIds.length<3)UI.compareIds.push(id);else this.checked=false}
+      else UI.compareIds=UI.compareIds.filter(x=>x!==id);
+      updateCmpBar();
+    });
+  });
+}
+
+function updateCmpBar(){
+  const b=document.getElementById('cmp-bar');
+  if(UI.compareIds.length>1){
+    b.innerHTML=UI.compareIds.length+' selected — <span class="cmp-lnk" onclick="switchTab(\'compare\',document.querySelectorAll(\'.tab\')[3])">Compare</span>';
+  } else {
+    b.textContent=UI.compareIds.length===1?'1 selected':'';
+  }
+}
+
+function buildCard(item,type){
+  const score=calcScore(item);
+  const sc=scCls(score);const bc=barCls(score);
+  const isH=score>=75,isM=score>=50;
+  const cc='card'+(isH?' m-high':isM?' m-med':'')+(item.status==='passed'?' s-passed':'');
+  const img=item.imageUrl
+    ?`<img class="c-img" src="${esc(item.imageUrl)}" alt="" onerror="this.style.display='none'">`
+    :`<div class="c-img-ph"><div class="c-img-ph-t">No Image</div></div>`;
+  const pills=(item.features||[]).length?`<div class="pills">${item.features.map(f=>`<span class="pill p${f.status[0]}">${esc(f.name)}</span>`).join('')}</div>`:'';
+  const dl=item.deadline?`<div class="dl-txt ${dlClass(item.deadline)}">Deadline: ${fmtD(item.deadline)}</div>`:'';
+  const rNotes=UI.showRealtor&&(item.realtorNotes||[]).length?`<div class="c-realtor"><div class="r-av">${esc(item.realtorInitials||'R')}</div><div class="r-nl">${item.realtorNotes.slice(0,2).map(n=>`<div class="r-note"><div class="r-ntxt">"${esc(n.text)}"</div><div class="r-ndate">${fmtD(n.date)}</div></div>`).join('')}</div></div>`:'';
+  const sub=[];
+  if(type==='land'){if(item.price)sub.push(fmt$(item.price));if(item.acreage)sub.push(item.acreage+' ac');if(item.area)sub.push(item.area)}
+  else{if(item.price)sub.push(fmt$(item.price));if(item.sqft)sub.push(item.sqft+' sqft');if(item.delivery)sub.push(item.delivery)}
+  return`<div class="${cc}">
+  <div class="c-topbar ${bc}"></div>
+  ${img}
+  <div class="c-body">
+    <div class="c-head">
+      <div><div class="cbadge ${type==='land'?'bl':'bh'}">${type==='land'?'Land':'Tiny Home'}</div><div class="c-name">${esc(item.address||item.name||'Untitled')}</div><div class="c-sub">${sub.join(' · ')}</div></div>
+      <div class="sc-blk ${sc}"><div class="sc-n">${score!==null?score:'—'}</div><div class="sc-r"></div><div class="sc-l">Match</div></div>
+    </div>
+    ${pills}
+    <div class="c-status ss-${item.status||'researching'}"><div class="sdot"></div><div class="stxt">${slbl(item.status)}</div></div>
+    ${dl}
+  </div>
+  ${rNotes}
+  <div class="c-acts">
+    <input type="checkbox" class="cmpcb" data-id="${item.id}" title="Compare">
+    <button class="bsm" onclick="openModal('${type}','${item.id}')">Edit</button>
+    <button class="bsm" onclick="openRNote('${type}','${item.id}')">+ Note</button>
+    ${item.listingUrl?`<button class="bsm" onclick="window.open('${esc(item.listingUrl)}','_blank')">View Listing</button>`:''}
+    <button class="bsm bsm-d" onclick="delItem('${type}','${item.id}')">Remove</button>
+  </div>
+</div>`;
+}
+
+// ── COMPAT ────────────────────────────────────────────────
+function buildCompat(){
+  if(!D.land.length||!D.homes.length)return`<div class="empty"><div class="empty-t">Compatibility Matrix</div><div class="empty-r"></div><div class="empty-s">Add both land and home listings first</div></div>`;
+  const clrs={green:'rgba(106,188,168,.7)',red:'rgba(212,96,58,.7)',grey:'rgba(96,96,160,.3)'};
+  const bclrs={green:'rgba(106,188,168,.35)',red:'rgba(212,96,58,.3)',grey:'rgba(96,96,160,.18)'};
+  let h=`<div class="compat-wrap"><table class="ctbl"><thead><tr><th>Land Listing</th>`;
+  D.homes.forEach(hm=>h+=`<th>${esc(hm.name)}</th>`);
+  h+=`</tr></thead><tbody>`;
+  D.land.forEach(l=>{
+    h+=`<tr><td><div class="cm-rn">${esc(l.address||l.name)}</div><div class="cm-rs">${esc(l.area||'')}</div></td>`;
+    D.homes.forEach(hm=>{
+      const key=l.id+'__'+hm.id;
+      const c=D.compat[key]||{status:'grey',note:''};
+      h+=`<td><div class="cm-cell" data-l="${l.id}" data-h="${hm.id}">
+        <div class="cm-dot" style="background:${clrs[c.status]};border-color:${bclrs[c.status]}"></div>
+        <div class="cm-note">${esc(c.note||'Unknown')}</div>
+      </div></td>`;
+    });
+    h+=`</tr>`;
+  });
+  return h+`</tbody></table></div>`;
+}
+
+function bindCM(){
+  document.querySelectorAll('.cm-cell').forEach(el=>{
+    el.addEventListener('click',function(){openCM(this.dataset.l,this.dataset.h)});
+  });
+}
+
+function openCM(lId,hId){
+  const l=D.land.find(x=>x.id===lId),hm=D.homes.find(x=>x.id===hId);
+  if(!l||!hm)return;
+  const key=lId+'__'+hId,cur=D.compat[key]||{status:'grey',note:''};
+  document.getElementById('modal-inner').innerHTML=`
+    <div class="m-topbar"></div>
+    <div class="m-hd"><div class="m-title">Compatibility</div><button class="m-x" onclick="closeModal()">&#10005;</button></div>
+    <div class="fr" style="color:var(--muted2);font-size:12px;margin-bottom:14px">${esc(l.address||l.name)} + ${esc(hm.name)}</div>
+    <div class="fr"><label class="fl">Status</label>
+      <select class="fi" id="cm-s">
+        <option value="green" ${cur.status==='green'?'selected':''}>Compatible</option>
+        <option value="red" ${cur.status==='red'?'selected':''}>Not Compatible</option>
+        <option value="grey" ${cur.status==='grey'?'selected':''}>Unknown</option>
+      </select></div>
+    <div class="fr"><label class="fl">Notes</label><textarea class="fta" id="cm-n">${esc(cur.note||'')}</textarea></div>
+    <div class="m-acts"><button class="btn-can" onclick="closeModal()">Cancel</button><button class="btn-sv" onclick="saveCM('${key}')">Save</button></div>`;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function saveCM(key){
+  D.compat[key]={status:v('cm-s'),note:v('cm-n')};
+  closeModal();renderMain();save();
+}
+
+// ── COMPARE ───────────────────────────────────────────────
+function buildCompare(){
+  if(UI.compareIds.length<2)return`<div class="cmp-empty">Select 2–3 listings via checkboxes, then return here</div>`;
+  const all=D.land.concat(D.homes);
+  const items=UI.compareIds.map(id=>all.find(x=>x.id===id)).filter(Boolean);
+  const rows=[
+    ['Type',x=>x.type||(D.land.find(l=>l.id===x.id)?'Land':'Home')],
+    ['Address / Name',x=>esc(x.address||x.name||'—')],
+    ['Area',x=>esc(x.area||'—')],
+    ['Price',x=>fmt$(x.price)],
+    ['Match Score',x=>{const s=calcScore(x);return s!==null?`<span class="cmp-sc">${s}</span>`:'—'}],
+    ['Status',x=>slbl(x.status)],
+    ['Acreage / Sq Ft',x=>x.acreage?x.acreage+' ac':x.sqft?x.sqft+' sqft':'—'],
+    ['Deadline',x=>fmtD(x.deadline)||'—'],
+    ['Features',x=>(x.features||[]).map(f=>`<span class="pill p${f.status[0]}" style="font-size:7px;padding:2px 6px">${esc(f.name)}</span>`).join(' ')||'—'],
+    ['Notes',x=>esc(x.notes||'—')],
+  ];
+  let h=`<div class="cmp-wrap"><table class="cmpt"><thead><tr><th></th>`;
+  items.forEach(it=>h+=`<th>${esc(it.address||it.name||'Item')}</th>`);
+  h+=`</tr></thead><tbody>`;
+  rows.forEach(([lbl,fn])=>{
+    h+=`<tr><td>${lbl}</td>`;
+    items.forEach(it=>h+=`<td>${fn(it)}</td>`);
+    h+=`</tr>`;
+  });
+  return h+`</tbody></table></div>`;
+}
+
+// ── MODAL ─────────────────────────────────────────────────
+function openModal(type,id){
+  if(!type)type=UI.tab==='homes'?'home':'land';
+  const arr=type==='land'?D.land:D.homes;
+  const item=id?arr.find(x=>x.id===id):null;
+  const feats=(item&&item.features)||[];
+  const notes=(item&&item.realtorNotes)||[];
+  const aopts=(D.areas||[]).map(a=>`<option value="${a}" ${item&&item.area===a?'selected':''}>${a}</option>`).join('');
+  const sopts=['researching','touring','priority','offer','passed','pending'].map(s=>
+    `<option value="${s}" ${item&&item.status===s?'selected':''}>${slbl(s)}</option>`).join('');
+  const landF=type==='land'?`
+    <div class="fr2">
+      <div><label class="fl">Address</label><input class="fi" id="f-addr" value="${esc(item&&item.address||'')}"></div>
+      <div><label class="fl">Area / Region</label><select class="fi" id="f-area"><option value="">— None —</option>${aopts}</select></div>
+    </div>
+    <div class="fr2">
+      <div><label class="fl">Price ($)</label><input class="fi" id="f-price" type="number" value="${item&&item.price||''}"></div>
+      <div><label class="fl">Acreage</label><input class="fi" id="f-acreage" value="${esc(item&&item.acreage||'')}"></div>
+    </div>
+    <div class="fr"><label class="fl">Realtor Initials</label><input class="fi" id="f-init" value="${esc(item&&item.realtorInitials||'')}" maxlength="3" style="width:80px"></div>`:'';
+  const homeF=type==='home'?`
+    <div class="fr2">
+      <div><label class="fl">Name / Model</label><input class="fi" id="f-name" value="${esc(item&&item.name||'')}"></div>
+      <div><label class="fl">Manufacturer</label><input class="fi" id="f-mfr" value="${esc(item&&item.mfr||'')}"></div>
+    </div>
+    <div class="fr2">
+      <div><label class="fl">Price ($)</label><input class="fi" id="f-price" type="number" value="${item&&item.price||''}"></div>
+      <div><label class="fl">Sq Ft</label><input class="fi" id="f-sqft" value="${esc(item&&item.sqft||'')}"></div>
+    </div>
+    <div class="fr2">
+      <div><label class="fl">Delivery / Lead Time</label><input class="fi" id="f-del" value="${esc(item&&item.delivery||'')}"></div>
+      <div><label class="fl">Area</label><select class="fi" id="f-area"><option value="">— None —</option>${aopts}</select></div>
+    </div>`:'';
+  document.getElementById('modal-inner').innerHTML=`
+    <div class="m-topbar"></div>
+    <div class="m-hd">
+      <div class="m-title">${item?'Edit':'Add'} ${type==='land'?'Land Listing':'Tiny Home'}</div>
+      <button class="m-x" onclick="closeModal()">&#10005;</button>
+    </div>
+    ${landF}${homeF}
+    <div class="fr2">
+      <div><label class="fl">Status</label><select class="fi" id="f-status">${sopts}</select></div>
+      <div><label class="fl">Deadline</label><input class="fi" id="f-dl" type="date" value="${item&&item.deadline||''}"></div>
+    </div>
+    <div class="fr2">
+      <div><label class="fl">Image URL</label><input class="fi" id="f-img" value="${esc(item&&item.imageUrl||'')}"></div>
+      <div><label class="fl">Listing URL</label><input class="fi" id="f-lurl" value="${esc(item&&item.listingUrl||'')}"></div>
+    </div>
+    <div class="fr"><label class="fl">Manual Score (0–100, only used if no criteria set)</label><input class="fi" id="f-ms" type="number" min="0" max="100" value="${item&&item.manualScore!==undefined?item.manualScore:''}" style="width:100px"></div>
+    <div class="fr"><label class="fl">Notes</label><textarea class="fta" id="f-notes">${esc(item&&item.notes||'')}</textarea></div>
+    <span class="fsec">Features</span>
+    <div id="feat-list">${feats.map((f,i)=>fRow(f.name,f.status,i)).join('')}</div>
+    <button class="btn-af" onclick="addFR()">+ Add Feature</button>
+    <span class="fsec">Realtor Notes (existing)</span>
+    <div id="note-list">${notes.map((n,i)=>nItem(n.text,n.date,i)).join('')}</div>
+    <div class="fr" style="margin-top:8px"><label class="fl">Add New Realtor Note</label><textarea class="fta" id="f-nn" style="min-height:50px"></textarea></div>
+    <div class="m-acts">
+      ${item?`<button class="btn-di" onclick="delItem('${type}','${id}');closeModal()">Delete</button>`:''}
+      <button class="btn-can" onclick="closeModal()">Cancel</button>
+      <button class="btn-sv" onclick="saveM('${type}','${id||''}')">Save</button>
+    </div>`;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function fRow(name,status,i){
+  return`<div class="feat-row">
+    <input class="feat-n" placeholder="Feature name (e.g. Water, Power, Zoning OK)" value="${esc(name)}">
+    <select class="feat-s">
+      <option value="green" ${status==='green'?'selected':''}>Green</option>
+      <option value="red" ${status==='red'?'selected':''}>Red</option>
+      <option value="grey" ${status==='grey'?'selected':''}>Grey</option>
+    </select>
+    <button class="feat-del" onclick="this.closest('.feat-row').remove()">&#10005;</button>
+  </div>`;
+}
+
+function nItem(text,date,i){
+  return`<div class="ni"><div class="ni-txt">"${esc(text)}"</div><div class="ni-date">${fmtD(date)}</div><button class="ni-del" onclick="this.closest('.ni').remove()">&#10005;</button></div>`;
+}
+
+function addFR(){
+  const d=document.createElement('div');
+  d.innerHTML=fRow('','grey',Date.now());
+  document.getElementById('feat-list').appendChild(d.firstChild);
+}
+
+function saveM(type,id){
+  const arr=type==='land'?D.land:D.homes;
+  const isE=!!id;
+  const item=isE?arr.find(x=>x.id===id):{id:uid(),type:type};
+  if(!item)return;
+  if(type==='land'){item.address=v('f-addr');item.acreage=v('f-acreage');item.realtorInitials=v('f-init')}
+  else{item.name=v('f-name');item.mfr=v('f-mfr');item.sqft=v('f-sqft');item.delivery=v('f-del')}
+  item.price=v('f-price');item.area=v('f-area');item.status=v('f-status')||'researching';
+  item.deadline=v('f-dl');item.imageUrl=v('f-img');item.listingUrl=v('f-lurl');item.notes=v('f-notes');
+  const ms=v('f-ms');item.manualScore=ms!==''?parseInt(ms):undefined;
+  item.features=[];
+  document.querySelectorAll('#feat-list .feat-row').forEach(r=>{
+    const n=r.querySelector('.feat-n').value.trim();
+    if(n)item.features.push({name:n,status:r.querySelector('.feat-s').value});
+  });
+  item.realtorNotes=[];
+  document.querySelectorAll('#note-list .ni').forEach(ni=>{
+    const t=ni.querySelector('.ni-txt').textContent.replace(/^"|"$/g,'');
+    if(t)item.realtorNotes.push({text:t,date:new Date().toISOString()});
+  });
+  const nn=v('f-nn').trim();
+  if(nn)item.realtorNotes.unshift({text:nn,date:new Date().toISOString()});
+  if(!isE){if(type==='land')D.land.push(item);else D.homes.push(item)}
+  closeModal();renderAll();save();
+}
+
+function openRNote(type,id){
+  const arr=type==='land'?D.land:D.homes;
+  const item=arr.find(x=>x.id===id);if(!item)return;
+  const sopts=['researching','touring','priority','offer','passed','pending'].map(s=>
+    `<option value="${s}" ${item.status===s?'selected':''}>${slbl(s)}</option>`).join('');
+  document.getElementById('modal-inner').innerHTML=`
+    <div class="m-topbar"></div>
+    <div class="m-hd"><div class="m-title">Realtor Note</div><button class="m-x" onclick="closeModal()">&#10005;</button></div>
+    <div class="fr" style="color:var(--peach2);font-family:'Raleway',sans-serif;font-weight:300;font-size:13px;margin-bottom:12px">${esc(item.address||item.name)}</div>
+    <div class="fr"><label class="fl">Note</label><textarea class="fta" id="rn-t" style="min-height:80px"></textarea></div>
+    <div class="fr2">
+      <div><label class="fl">Update Status</label><select class="fi" id="rn-s"><option value="">No change</option>${sopts}</select></div>
+      <div><label class="fl">Initials</label><input class="fi" id="rn-i" value="${esc(item.realtorInitials||'')}" maxlength="3" style="width:80px"></div>
+    </div>
+    <div class="m-acts"><button class="btn-can" onclick="closeModal()">Cancel</button><button class="btn-sv" onclick="saveRN('${type}','${id}')">Save</button></div>`;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function saveRN(type,id){
+  const arr=type==='land'?D.land:D.homes;
+  const item=arr.find(x=>x.id===id);if(!item)return;
+  const t=v('rn-t').trim();
+  if(t){if(!item.realtorNotes)item.realtorNotes=[];item.realtorNotes.unshift({text:t,date:new Date().toISOString()})}
+  const s=v('rn-s');if(s)item.status=s;
+  const i=v('rn-i').trim();if(i)item.realtorInitials=i;
+  closeModal();renderAll();save();
+}
+
+function delItem(type,id){
+  if(!confirm('Remove this listing?'))return;
+  if(type==='land')D.land=D.land.filter(x=>x.id!==id);
+  else D.homes=D.homes.filter(x=>x.id!==id);
+  renderAll();save();
+}
+
+function closeModal(){document.getElementById('overlay').classList.remove('open')}
+
+// ── SETTINGS ─────────────────────────────────────────────
+function openSettings(){renderS();document.getElementById('settings').classList.add('open')}
+function closeSettings(){document.getElementById('settings').classList.remove('open')}
+
+function renderS(){
+  const b=D.budget||{};
+  const crH=(D.criteria||[]).map((c,i)=>`<div class="cr"><input class="cr-n" value="${esc(c.name)}" placeholder="Criterion"><input class="cr-w" type="number" min="1" max="10" value="${c.weight||1}" title="Weight"><button class="cr-del" onclick="rmCrit(${i})">&#10005;</button></div>`).join('');
+  const arH=(D.areas||[]).map((a,i)=>`<div class="ar"><input class="ar-n" value="${esc(a)}"><button class="ar-del" onclick="rmArea(${i})">&#10005;</button></div>`).join('');
+  document.getElementById('s-body').innerHTML=`
+    <div class="s-hd"><div class="s-title">Settings</div><button class="ibtn" onclick="closeSettings()">&#10005;</button></div>
+    <div class="s-sec">
+      <span class="s-lbl">GitHub Storage</span>
+      <div class="fr"><label class="fl">GitHub Username</label><input class="fi" id="s-user" value="${esc(D.gh.user)}"></div>
+      <div class="fr"><label class="fl">Repository Name</label><input class="fi" id="s-repo" value="${esc(D.gh.repo||'moving')}"></div>
+      <div class="fr"><label class="fl">Personal Access Token</label><input class="fi" id="s-tok" type="password" value="${esc(D.gh.token)}"></div>
+      <div class="s-note">Needs <strong>repo</strong> scope. <a href="https://github.com/settings/tokens/new" target="_blank">Generate token here</a>. Stored in your browser only.</div>
+      <button class="btn-ss" onclick="saveGH()">Connect &amp; Load Data</button>
+    </div>
+    <div class="s-sec">
+      <span class="s-lbl">Move Date</span>
+      <input class="fi" id="s-md" type="date" value="${esc(D.moveDate||'')}">
+    </div>
+    <div class="s-sec">
+      <span class="s-lbl">Budget Estimates</span>
+      <div class="fr"><label class="fl">Land ($)</label><input class="fi" id="s-bl" type="number" value="${esc(b.land||'')}"></div>
+      <div class="fr"><label class="fl">Home ($)</label><input class="fi" id="s-bh" type="number" value="${esc(b.home||'')}"></div>
+      <div class="fr"><label class="fl">Modifications ($)</label><input class="fi" id="s-bm" type="number" value="${esc(b.mods||'')}"></div>
+      <button class="btn-ss" onclick="saveBudget()">Save</button>
+    </div>
+    <div class="s-sec">
+      <span class="s-lbl">Match Score Criteria</span>
+      <div class="wt-h">Weight 1–10. Score auto-calculates from green/red/grey pills on each listing.</div>
+      <div id="crit-list">${crH}</div>
+      <button class="btn-sa" onclick="addCrit()">+ Add Criterion</button>
+      <button class="btn-ss" onclick="saveCrit()">Save Criteria</button>
+    </div>
+    <div class="s-sec">
+      <span class="s-lbl">Geographic Areas</span>
+      <div id="area-list">${arH}</div>
+      <button class="btn-sa" onclick="addArea()">+ Add Area</button>
+      <button class="btn-ss" onclick="saveAreas()">Save Areas</button>
+    </div>`;
+}
+
+function saveGH(){
+  D.gh.user=v('s-user').trim();D.gh.repo=v('s-repo').trim()||'moving';D.gh.token=v('s-tok').trim();
+  localStorage.setItem('ls_gh',JSON.stringify(D.gh));
+  ghLoad();
+}
+
+function saveBudget(){
+  D.budget={land:v('s-bl'),home:v('s-bh'),mods:v('s-bm')};
+  D.moveDate=v('s-md');
+  renderBudget();updateHeader();save();
+}
+
+function addCrit(){if(!D.criteria)D.criteria=[];D.criteria.push({name:'',weight:1});renderS()}
+function rmCrit(i){D.criteria.splice(i,1);renderS()}
+function saveCrit(){
+  D.criteria=[];
+  document.querySelectorAll('#crit-list .cr').forEach(r=>{
+    const n=r.querySelector('.cr-n').value.trim();
+    if(n)D.criteria.push({name:n,weight:parseFloat(r.querySelector('.cr-w').value)||1});
+  });
+  renderAll();save();
+}
+
+function addArea(){if(!D.areas)D.areas=[];D.areas.push('');renderS()}
+function rmArea(i){D.areas.splice(i,1);renderS()}
+function saveAreas(){
+  D.areas=[];
+  document.querySelectorAll('#area-list .ar').forEach(r=>{
+    const n=r.querySelector('.ar-n').value.trim();
+    if(n)D.areas.push(n);
+  });
+  syncAreaFilter();save();
+}
+
+function toggleRealtor(){
+  UI.showRealtor=!UI.showRealtor;
+  document.getElementById('rtoggle').classList.toggle('on',UI.showRealtor);
+  renderMain();
+}
+
+// ── INIT ─────────────────────────────────────────────────
+(function init(){
+  const g=localStorage.getItem('ls_gh');
+  if(g){try{D.gh=JSON.parse(g)}catch(e){}}
+  document.getElementById('rtoggle').classList.add('on');
+  document.getElementById('toolbar').style.display='flex';
+  renderAll();
+  if(D.gh.user&&D.gh.token)ghLoad();
+})();
+</script>
+</body>
+</html>
