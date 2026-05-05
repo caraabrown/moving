@@ -228,6 +228,37 @@ input,select,textarea{font-family:'IBM Plex Sans',sans-serif}
 .s-note{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.6}
 .s-note a{color:var(--purple2)}
 .wt-h{font-size:9px;color:var(--muted);margin-bottom:6px;font-style:italic}
+
+/* ── FETCH UI ── */
+.fetch-bar{display:flex;gap:8px;align-items:center;margin-bottom:14px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px}
+.fetch-bar input{flex:1;background:transparent;border:none;color:var(--text);font-size:12px;outline:none}
+.fetch-bar input::placeholder{color:var(--muted)}
+.btn-fetch{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:5px 14px;background:var(--grad);color:#fff;border:none;border-radius:1px;white-space:nowrap;flex-shrink:0;transition:opacity .15s}
+.btn-fetch:hover{opacity:.85}
+.btn-fetch:disabled{opacity:.4;cursor:default}
+.fetch-status{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;min-height:14px}
+.fetch-status.fetching{color:var(--purple2)}
+.fetch-status.ok{color:#6abca8}
+.fetch-status.fail{color:var(--coral)}
+.fetch-preview{background:var(--bg3);border:1px solid var(--border);border-radius:3px;overflow:hidden;margin-bottom:14px;display:none}
+.fetch-preview.show{display:block}
+.fp-img{width:100%;max-height:180px;object-fit:cover;display:block;background:var(--bg)}
+.fp-img-ph{height:60px;background:var(--bg);display:flex;align-items:center;justify-content:center}
+.fp-img-ph-t{font-family:'Raleway',sans-serif;font-weight:200;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--border2)}
+.fp-body{padding:12px}
+.fp-title{font-family:'Raleway',sans-serif;font-weight:400;font-size:13px;color:var(--peach2);margin-bottom:4px;line-height:1.4}
+.fp-desc{font-size:11px;color:var(--muted2);line-height:1.5;margin-bottom:10px}
+.fp-fields{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.fp-field{font-family:'Raleway',sans-serif;font-weight:300;font-size:9px;letter-spacing:1px;padding:3px 8px;border-radius:1px;border:1px solid var(--border2);color:var(--muted2)}
+.fp-field span{color:var(--peach)}
+.fp-imgs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.fp-thumb{width:70px;height:52px;object-fit:cover;border-radius:2px;border:1px solid var(--border);cursor:pointer;transition:border-color .15s}
+.fp-thumb:hover{border-color:var(--purple2)}
+.fp-thumb.selected{border-color:var(--coral);box-shadow:0 0 0 1px var(--coral)}
+.fp-imgs-lbl{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.btn-apply{font-family:'Raleway',sans-serif;font-weight:300;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;padding:6px 16px;background:transparent;border:1px solid rgba(106,188,168,.4);color:#6abca8;border-radius:1px;transition:all .15s}
+.btn-apply:hover{background:rgba(106,188,168,.08)}
+.fetch-divider{border:none;border-top:1px solid var(--border);margin:16px 0 14px}
 </style>
 </head>
 <body>
@@ -599,6 +630,13 @@ function openModal(type,id){
       <div class="m-title">${item?'Edit':'Add'} ${type==='land'?'Land Listing':'Tiny Home'}</div>
       <button class="m-x" onclick="closeModal()">&#10005;</button>
     </div>
+    <div class="fetch-bar">
+      <input id="fetch-url" placeholder="Paste a listing URL to auto-fill…" type="url">
+      <button class="btn-fetch" id="fetch-btn" onclick="fetchListing('${type}')">Fetch Info</button>
+    </div>
+    <div class="fetch-status" id="fetch-status"></div>
+    <div class="fetch-preview" id="fetch-preview"></div>
+    <hr class="fetch-divider">
     ${landF}${homeF}
     <div class="fr2">
       <div><label class="fl">Status</label><select class="fi" id="f-status">${sopts}</select></div>
@@ -708,6 +746,179 @@ function delItem(type,id){
 }
 
 function closeModal(){document.getElementById('overlay').classList.remove('open')}
+
+// ── URL FETCH ─────────────────────────────────────────────
+async function fetchListing(type){
+  const rawUrl=(document.getElementById('fetch-url')||{}).value||'';
+  const url=rawUrl.trim();
+  if(!url)return;
+  const btn=document.getElementById('fetch-btn');
+  const status=document.getElementById('fetch-status');
+  const preview=document.getElementById('fetch-preview');
+  btn.disabled=true;
+  status.className='fetch-status fetching';
+  status.textContent='Fetching…';
+  preview.className='fetch-preview';
+  preview.innerHTML='';
+  try{
+    let html='';
+    try{
+      const r=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url));
+      if(r.ok){const j=await r.json();if(j&&j.contents&&j.contents.length>500)html=j.contents;}
+    }catch(e){}
+    if(!html){
+      try{
+        const r=await fetch('https://corsproxy.io/?'+encodeURIComponent(url));
+        if(r.ok){const t=await r.text();if(t.length>500)html=t;}
+      }catch(e){}
+    }
+    if(!html){
+      status.className='fetch-status fail';
+      status.textContent='Page blocked external fetch — paste image URL manually.';
+      btn.disabled=false;return;
+    }
+    const parser=new DOMParser();
+    const doc=parser.parseFromString(html,'text/html');
+    const meta=n=>(doc.querySelector(`meta[property="${n}"]`)||doc.querySelector(`meta[name="${n}"]`)||{}).content||'';
+
+    // JSON-LD (land.com uses this for price, name, images)
+    let ld={};
+    doc.querySelectorAll('script[type="application/ld+json"]').forEach(s=>{
+      try{
+        const p=JSON.parse(s.textContent);
+        const items=Array.isArray(p)?p:[p];
+        items.forEach(item=>{if(item.price||item.name||item['@type']==='RealEstateListing')ld=Object.assign({},item,ld);});
+      }catch(e){}
+    });
+
+    const isLandCom=url.includes('land.com')||url.includes('landwatch.com');
+
+    // Title/address
+    let address='';
+    if(isLandCom){
+      const h1=doc.querySelector('h1');
+      if(h1)address=h1.textContent.trim();
+    }
+    if(!address)address=ld.name||meta('og:title')||meta('twitter:title')||doc.title||'';
+    address=address.replace(/\s*[-|·]\s*land\.com.*/i,'').replace(/\s*[-|·]\s*landwatch.*/i,'').trim();
+
+    const desc=ld.description||meta('og:description')||meta('twitter:description')||meta('description')||'';
+
+    // Price
+    let price='';
+    if(ld.offers&&ld.offers.price)price=String(ld.offers.price);
+    else if(ld.price)price=String(ld.price);
+    else price=meta('product:price:amount')||meta('og:price:amount')||'';
+    if(!price){
+      const pm=html.match(/(?:asking price|list price|price)[^\$]*\$([\d,]+)/i)||html.match(/\$([\d,]{4,})/);
+      if(pm)price=pm[1].replace(/,/g,'');
+    }
+
+    // Acreage
+    let acreage='';
+    if(!acreage){
+      const am=html.match(/(\d{1,5}(?:\.\d{1,2})?)\s*(?:total\s*)?acres?(?:\s*of|\s*in|\s*\||\s*<|\s*,|$)/i)
+               ||html.match(/(\d{1,5}(?:\.\d{1,2})?)\s*ac(?:\s|,|<|$)/i);
+      if(am)acreage=am[1];
+    }
+
+    // County/State from title for land.com
+    let areaLabel='';
+    if(isLandCom){
+      const cm=address.match(/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s+County/);
+      const sm=address.match(/,\s*([A-Z][a-zA-Z]+)(?:\s|$)/);
+      const county=cm?cm[1]+' County':'';
+      const state=sm?sm[1]:'';
+      areaLabel=[county,state].filter(Boolean).join(', ');
+    }
+
+    // Images
+    const allImgs=[];
+    const ldImgs=ld.image?Array.isArray(ld.image)?ld.image:[ld.image]:[];
+    ldImgs.forEach(i=>{const u=typeof i==='string'?i:i.url||'';if(u&&!allImgs.includes(u))allImgs.push(u);});
+    doc.querySelectorAll('meta[property="og:image"],meta[property="og:image:url"]').forEach(m=>{
+      if(m.content&&!allImgs.includes(m.content))allImgs.push(m.content);
+    });
+    const twImg=meta('twitter:image');if(twImg&&!allImgs.includes(twImg))allImgs.push(twImg);
+    doc.querySelectorAll('img[src]').forEach(img=>{
+      const src=img.getAttribute('src')||'';
+      if(src.startsWith('http')&&(src.includes('land.com')||src.includes('cloudinary')||src.includes('cdn'))&&!allImgs.includes(src))
+        allImgs.push(src);
+    });
+    doc.querySelectorAll('img[srcset]').forEach(img=>{
+      const ss=img.getAttribute('srcset')||'';
+      const parts=ss.split(',').map(s=>s.trim().split(/\s+/));
+      const biggest=parts.reduce((b,p)=>(!b||parseFloat(p[1]||0)>parseFloat(b[1]||0))?p:b,null);
+      if(biggest&&biggest[0]&&biggest[0].startsWith('http')&&!allImgs.includes(biggest[0]))allImgs.push(biggest[0]);
+    });
+    const imgList=allImgs.slice(0,8);
+
+    window._scraped={address,price,acreage,desc,imgs:imgList,url,areaLabel,selectedImg:imgList[0]||''};
+
+    const imgHTML=imgList.length
+      ?`<div class="fp-imgs-lbl">Click image to set as cover photo</div>
+         <div class="fp-imgs">${imgList.map((src,i)=>`<img class="fp-thumb${i===0?' selected':''}" src="${esc(src)}" onclick="selectThumb(this,'${esc(src)}')" onerror="this.style.display='none'" loading="lazy">`).join('')}</div>`
+      :`<div class="fp-imgs-lbl" style="color:var(--coral)">No images pulled — paste image URL into field below</div>`;
+
+    const flds=[
+      price?`<div class="fp-field">Price: <span>$${Number(price.replace(/\D/g,'')).toLocaleString()}</span></div>`:'',
+      acreage?`<div class="fp-field">Acreage: <span>${acreage} ac</span></div>`:'',
+      areaLabel?`<div class="fp-field">Area: <span>${esc(areaLabel)}</span></div>`:'',
+    ].filter(Boolean).join('');
+
+    preview.innerHTML=`
+      ${imgList[0]?`<img class="fp-img" id="fp-main-img" src="${esc(imgList[0])}" onerror="this.style.display='none'">`
+        :`<div class="fp-img-ph"><div class="fp-img-ph-t">No Image</div></div>`}
+      <div class="fp-body">
+        <div class="fp-title">${esc(address)}</div>
+        ${desc?`<div class="fp-desc">${esc(desc.slice(0,240))}${desc.length>240?'…':''}</div>`:''}
+        <div class="fp-fields">${flds}</div>
+        ${imgHTML}
+        <button class="btn-apply" onclick="applyScraped('${type}')">Apply to Form</button>
+      </div>`;
+    preview.className='fetch-preview show';
+
+    const found=[address&&'address',price&&'price',acreage&&'acreage',areaLabel&&'area',imgList.length&&imgList.length+' image(s)'].filter(Boolean);
+    status.className='fetch-status ok';
+    status.textContent='Found: '+found.join(', ');
+  }catch(e){
+    status.className='fetch-status fail';
+    status.textContent='Error: '+e.message;
+  }
+  btn.disabled=false;
+}
+
+function selectThumb(el,src){
+  document.querySelectorAll('.fp-thumb').forEach(t=>t.classList.remove('selected'));
+  el.classList.add('selected');
+  window._scraped=window._scraped||{};
+  window._scraped.selectedImg=src;
+  const main=document.getElementById('fp-main-img');
+  if(main)main.src=src;
+}
+
+function applyScraped(type){
+  const s=window._scraped;if(!s)return;
+  // Apply to form fields
+  if(type==='land'){
+    const addr=document.getElementById('f-addr');if(addr&&s.address)addr.value=s.address;
+    const ac=document.getElementById('f-acreage');if(ac&&s.acreage)ac.value=s.acreage;
+  } else {
+    const nm=document.getElementById('f-name');if(nm&&s.address)nm.value=s.address;
+    const sq=document.getElementById('f-sqft');if(sq&&s.sqft)sq.value=s.sqft;
+  }
+  const pr=document.getElementById('f-price');if(pr&&s.price)pr.value=s.price.replace(/[,$]/g,'');
+  const img=document.getElementById('f-img');if(img&&s.selectedImg)img.value=s.selectedImg;
+  const lurl=document.getElementById('f-lurl');if(lurl&&s.url)lurl.value=s.url;
+  const notes=document.getElementById('f-notes');
+  if(notes&&s.desc&&!notes.value)notes.value=s.desc.slice(0,300);
+  // Flash fields green briefly
+  ['f-addr','f-name','f-price','f-acreage','f-sqft','f-img','f-lurl'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&el.value){el.style.borderColor='rgba(106,188,168,.6)';setTimeout(()=>el.style.borderColor='',1500)}
+  });
+  document.getElementById('fetch-status').textContent='Applied — review and edit fields below';
+}
 
 // ── SETTINGS ─────────────────────────────────────────────
 function openSettings(){renderS();document.getElementById('settings').classList.add('open')}
